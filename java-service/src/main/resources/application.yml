@@ -1,0 +1,18 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/signaldesk}
+    username: ${SPRING_DATASOURCE_USERNAME:signaldesk}
+    password: ${SPRING_DATASOURCE_PASSWORD:signaldesk}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+app:
+  ai-service-url: ${AI_SERVICE_URL:http://localhost:4000}

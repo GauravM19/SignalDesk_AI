@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-signaldesk}
+      POSTGRES_USER: ${POSTGRES_USER:-signaldesk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-signaldesk}
+    ports: ["5432:5432"]
+    volumes: ["signaldesk_pg:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-signaldesk} -d ${POSTGRES_DB:-signaldesk}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  java-api:
+    build: ./java-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-signaldesk}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-signaldesk}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-signaldesk}
+      AI_SERVICE_URL: http://node-ai:4000
+    ports: ["8080:8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      node-ai:
+        condition: service_started
+  node-ai:
+    build: ./node-ai
+    environment:
+      PORT: 4000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    ports: ["4000:4000"]
+  frontend:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_AI_URL: http://localhost:4000
+    ports: ["3000:3000"]
+    depends_on: [java-api, node-ai]
+volumes:
+  signaldesk_pg:
