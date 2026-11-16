@@ -40,7 +40,10 @@ export default function Dashboard() {
 
   async function addSource(e: FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !url.trim()) return setMessage('Enter both a source name and URL.');
+    if (!name.trim() || !url.trim()) {
+      setMessage('Enter both a source name and URL.');
+      return;
+    }
     try {
       const response = await fetch(`${API}/api/sources`, {
         method: 'POST',
@@ -48,7 +51,8 @@ export default function Dashboard() {
         body: JSON.stringify({ name: name.trim(), type: 'RSS', url: url.trim() })
       });
       if (!response.ok) throw new Error('Could not connect source');
-      setSources(current => [...current, await response.json()]);
+      const createdSource = await response.json();
+      setSources(current => [...current, createdSource]);
       setMessage('Source connected successfully.');
     } catch {
       setMessage('Could not connect this source. Check the Java API and URL.');
