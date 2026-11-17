@@ -4,17 +4,17 @@ import { z } from 'zod';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
-const app = express();
+export const app = express();
 app.use(cors());
 app.use(express.json({ limit: '256kb' }));
 const port = Number(process.env.PORT || 4000);
 
-const ChatRequest = z.object({
+export const ChatRequest = z.object({
   question: z.string().trim().min(3, 'Question must contain at least 3 characters.').max(500, 'Question is too long.'),
   context: z.string().trim().max(12000, 'Context is too large.').optional()
 });
 
-const SummariseRequest = z.object({
+export const SummariseRequest = z.object({
   title: z.string().trim().min(1, 'Title is required.').max(200, 'Title is too long.')
 });
 
@@ -65,4 +65,6 @@ app.post('/ai/summarise', (req, res) => {
   });
 });
 
-app.listen(port, () => console.log(`SignalDesk AI listening on ${port}`));
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => console.log(`SignalDesk AI listening on ${port}`));
+}
