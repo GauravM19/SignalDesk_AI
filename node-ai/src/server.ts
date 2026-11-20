@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import { z } from 'zod';
 import { ChatOpenAI } from '@langchain/openai';
@@ -65,6 +65,26 @@ app.post('/ai/summarise', (req, res) => {
   });
 });
 
+// Keep parser errors machine-readable; never expose stack traces or request bodies.
+const handleRequestError: ErrorRequestHandler = (error, _req, res, next) => {
+  if (res.headersSent) return next(error);
+  if (error?.type === 'entity.parse.failed') {
+    res.status(400).json({ error: 'Invalid JSON request body', code: 'INVALID_JSON' });
+    return;
+  }
+  if (error?.type === 'entity.too.large') {
+    res.status(413).json({ error: 'Request body exceeds the 256kb limit', code: 'PAYLOAD_TOO_LARGE' });
+    return;
+  }
+  if (error?.status === 415) {
+    res.status(415).json({ error: 'Unsupported request encoding', code: 'UNSUPPORTED_ENCODING' });
+    return;
+  }
+  res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+};
+app.use(handleRequestError);
+
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => console.log(`SignalDesk AI listening on ${port}`));
 }
+

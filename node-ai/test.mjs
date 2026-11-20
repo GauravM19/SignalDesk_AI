@@ -111,9 +111,29 @@ test('malformed JSON is rejected before reaching the chat handler', async () => 
     method: 'POST', headers: { 'content-type': 'application/json' }, body: '{'
   });
   assert.equal(response.status, 400);
+  assert.match(response.headers.get('content-type'), /application\/json/);
+  assert.deepEqual(await response.json(), {
+    error: 'Invalid JSON request body', code: 'INVALID_JSON'
+  });
 });
 
 test('JSON payloads larger than the body limit are rejected', async () => {
   const response = await post('/ai/chat', { question: 'x'.repeat(270000) });
   assert.equal(response.status, 413);
+  assert.deepEqual(await response.json(), {
+    error: 'Request body exceeds the 256kb limit', code: 'PAYLOAD_TOO_LARGE'
+  });
 });
+
+test('unsupported body encoding returns JSON without leaking internals', async () => {
+  const response = await fetch(`${baseUrl}/ai/chat`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'content-encoding': 'unsupported' },
+    body: JSON.stringify({ question: 'What changed?' })
+  });
+  assert.equal(response.status, 415);
+  assert.deepEqual(await response.json(), {
+    error: 'Unsupported request encoding', code: 'UNSUPPORTED_ENCODING'
+  });
+});
+
