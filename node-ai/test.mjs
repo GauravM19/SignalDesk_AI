@@ -81,6 +81,7 @@ test('demo answers trim the question and never claim grounding', async () => {
   assert.equal(body.grounded, false);
   assert.deepEqual(body.citations, []);
   assert.ok(body.answer.includes('“What changed?”'));
+  assert.ok(body.answer.includes('No sources have been retrieved.'));
 });
 
 test('chat accepts the maximum question and context lengths', async () => {
@@ -135,5 +136,48 @@ test('unsupported body encoding returns JSON without leaking internals', async (
   assert.deepEqual(await response.json(), {
     error: 'Unsupported request encoding', code: 'UNSUPPORTED_ENCODING'
   });
+});
+
+test('configured AI abstains without context and never invokes the provider', async () => {
+  const script = `
+    const { ChatOpenAI } = require('@langchain/openai');
+    ChatOpenAI.prototype.invoke = async () => {
+      throw new Error('Provider must not be invoked without evidence');
+    };
+    const { app } = require('./src/server.ts');
+    const server = app.listen(0, '127.0.0.1', () => {
+      process.send({ port: server.address().port });
+    });
+  `;
+  const server = fork('-e', [script], {
+    cwd: new URL('.', import.meta.url),
+    execArgv: ['--import', 'tsx'],
+    env: { ...process.env, NODE_ENV: 'test', OPENAI_API_KEY: 'test-only-not-a-real-key' },
+    stdio: ['ignore', 'inherit', 'inherit', 'ipc']
+  });
+  try {
+    const [message] = await once(server, 'message', { signal: AbortSignal.timeout(15000) });
+    for (const context of [undefined, '', '   ']) {
+      const response = await fetch(`http://127.0.0.1:${message.port}/ai/chat`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ question: 'What changed?', context }),
+        signal: AbortSignal.timeout(5000)
+      });
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.status, 'insufficient_evidence');
+      assert.equal(body.grounded, false);
+      assert.equal(body.mode, 'openai');
+      assert.deepEqual(body.citations, []);
+      assert.match(body.answer, /Supply source context/);
+    }
+  } finally {
+    if (server.exitCode === null) {
+      const exited = once(server, 'exit');
+      server.kill();
+      await exited;
+    }
+  }
 });
 

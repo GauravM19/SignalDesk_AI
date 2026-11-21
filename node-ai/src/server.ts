@@ -18,7 +18,7 @@ export const SummariseRequest = z.object({
   title: z.string().trim().min(1, 'Title is required.').max(200, 'Title is too long.')
 });
 
-const demoAnswer = (question: string) => `SignalDesk found a grounded demo response for “${question}”. The AI service is running in safe demo mode; connect an OPENAI_API_KEY to generate a response from indexed sources. Your production answer will include citations, source metadata and a confidence score.`;
+const demoAnswer = (question: string) => `This is a demo response for “${question}”, not an evidence-grounded answer. No sources have been retrieved. Configure OPENAI_API_KEY and supply source context to enable AI research.`;
 
 app.get('/health', (_req, res) => res.json({
   status: 'ok',
@@ -30,9 +30,20 @@ app.post('/ai/chat', async (req, res) => {
   const parsed = ChatRequest.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { question, context = 'No indexed context was supplied.' } = parsed.data;
+  const { question, context } = parsed.data;
   if (!process.env.OPENAI_API_KEY) {
     return res.json({ answer: demoAnswer(question), citations: [], grounded: false, mode: 'demo' });
+  }
+
+  // Do not spend tokens or generate unsupported claims when evidence is absent.
+  if (!context) {
+    return res.json({
+      answer: 'I cannot answer from evidence yet. Supply source context with your question.',
+      citations: [],
+      grounded: false,
+      mode: 'openai',
+      status: 'insufficient_evidence'
+    });
   }
 
   try {
