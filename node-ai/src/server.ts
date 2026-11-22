@@ -57,7 +57,20 @@ app.post('/ai/chat', async (req, res) => {
       new SystemMessage('You are SignalDesk, a precise research assistant. Answer only from the supplied context. If evidence is missing, say so. Keep the answer concise.'),
       new HumanMessage(`Question: ${question}\nContext:\n${context}`)
     ]);
-    return res.json({ answer: response.content.toString(), citations: [], grounded: true, mode: 'openai' });
+    const answer = typeof response.content === 'string'
+      ? response.content.trim()
+      : response.content
+        .flatMap(part => part.type === 'text' && 'text' in part && typeof part.text === 'string' ? [part.text] : [])
+        .join('\n')
+        .trim();
+    if (!answer) throw new Error('Provider returned no text');
+
+    // Supplying context does not prove that every generated claim is supported.
+    // Keep grounding unverified until citation/claim checks are implemented.
+    return res.json({
+      answer, citations: [], grounded: false, groundingStatus: 'unverified',
+      contextProvided: true, mode: 'openai'
+    });
   } catch {
     return res.status(502).json({
       error: 'AI provider unavailable',

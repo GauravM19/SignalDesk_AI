@@ -81,6 +81,40 @@ test('provider failures return a safe error without upstream details', async () 
   });
 });
 
+for (const [label, content, expected] of [
+  ['plain text', '  A supported-looking answer.  ', 'A supported-looking answer.'],
+  ['text blocks', [{ type: 'text', text: 'First point.' }, { type: 'image_url', image_url: 'unused' }, { type: 'text', text: 'Second point.' }], 'First point.\nSecond point.']
+]) {
+  test(`provider ${label} is readable and is not automatically marked grounded`, async () => {
+    await withProviderMock(`return { content: ${JSON.stringify(content)} };`, async url => {
+      const response = await fetch(`${url}/ai/chat`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ question: 'What changed?', context: 'Some source text.' }),
+        signal: AbortSignal.timeout(5000)
+      });
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.answer, expected);
+      assert.equal(body.grounded, false);
+      assert.equal(body.groundingStatus, 'unverified');
+      assert.equal(body.contextProvided, true);
+      assert.deepEqual(body.citations, []);
+    });
+  });
+}
+
+test('empty provider output is rejected instead of returning a blank answer', async () => {
+  await withProviderMock("return { content: '   ' };", async url => {
+    const response = await fetch(`${url}/ai/chat`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ question: 'What changed?', context: 'Some source text.' }),
+      signal: AbortSignal.timeout(5000)
+    });
+    assert.equal(response.status, 502);
+    assert.equal((await response.json()).code, 'AI_PROVIDER_UNAVAILABLE');
+  });
+});
+
 test('health explicitly identifies demo mode without a provider key', async () => {
   const response = await fetch(`${baseUrl}/health`);
   assert.equal(response.status, 200);
