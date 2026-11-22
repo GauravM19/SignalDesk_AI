@@ -49,17 +49,19 @@ app.post('/ai/chat', async (req, res) => {
   try {
     const model = new ChatOpenAI({
       model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      temperature: 0.1
+      temperature: 0.1,
+      timeout: 15000,
+      maxRetries: 1
     });
     const response = await model.invoke([
       new SystemMessage('You are SignalDesk, a precise research assistant. Answer only from the supplied context. If evidence is missing, say so. Keep the answer concise.'),
       new HumanMessage(`Question: ${question}\nContext:\n${context}`)
     ]);
     return res.json({ answer: response.content.toString(), citations: [], grounded: true, mode: 'openai' });
-  } catch (error) {
+  } catch {
     return res.status(502).json({
       error: 'AI provider unavailable',
-      detail: error instanceof Error ? error.message : 'unknown error'
+      code: 'AI_PROVIDER_UNAVAILABLE'
     });
   }
 });

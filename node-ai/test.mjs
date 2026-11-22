@@ -42,6 +42,45 @@ async function post(path, payload) {
   });
 }
 
+// Isolate provider mocks in a child process so they cannot affect other tests.
+async function withProviderMock(mockBody, run) {
+  const script = `
+    const { ChatOpenAI } = require('@langchain/openai');
+    ChatOpenAI.prototype.invoke = async () => { ${mockBody} };
+    const { app } = require('./src/server.ts');
+    const server = app.listen(0, '127.0.0.1', () => process.send({ port: server.address().port }));
+  `;
+  const server = fork('-e', [script], {
+    cwd: new URL('.', import.meta.url), execArgv: ['--import', 'tsx'],
+    env: { ...process.env, NODE_ENV: 'test', OPENAI_API_KEY: 'test-only-not-a-real-key' },
+    stdio: ['ignore', 'inherit', 'inherit', 'ipc']
+  });
+  try {
+    const [message] = await once(server, 'message', { signal: AbortSignal.timeout(15000) });
+    await run(`http://127.0.0.1:${message.port}`);
+  } finally {
+    if (server.exitCode === null) {
+      const exited = once(server, 'exit');
+      server.kill();
+      await exited;
+    }
+  }
+}
+
+test('provider failures return a safe error without upstream details', async () => {
+  await withProviderMock("throw new Error('secret-api-key private-source-text');", async url => {
+    const response = await fetch(`${url}/ai/chat`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ question: 'What changed?', context: 'A supplied research passage.' }),
+      signal: AbortSignal.timeout(5000)
+    });
+    assert.equal(response.status, 502);
+    assert.deepEqual(await response.json(), {
+      error: 'AI provider unavailable', code: 'AI_PROVIDER_UNAVAILABLE'
+    });
+  });
+});
+
 test('health explicitly identifies demo mode without a provider key', async () => {
   const response = await fetch(`${baseUrl}/health`);
   assert.equal(response.status, 200);
