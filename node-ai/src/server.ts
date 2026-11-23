@@ -91,6 +91,25 @@ app.post('/ai/summarise', (req, res) => {
   });
 });
 
+// Handle unsupported methods after routes so normal responses and CORS preflight
+// keep their existing behaviour. HEAD is automatically supported by GET routes.
+const allowedMethods = new Map([
+  ['/health', 'GET, HEAD'],
+  ['/ai/chat', 'POST'],
+  ['/ai/summarise', 'POST']
+]);
+app.use((req, res) => {
+  // Match Express's default case-insensitive and optional trailing-slash routes.
+  const path = req.path.replace(/\/$/, '').toLowerCase();
+  const allowed = allowedMethods.get(path);
+  if (allowed) {
+    return res.set('Allow', allowed).status(405).json({
+      error: 'Method not allowed', code: 'METHOD_NOT_ALLOWED'
+    });
+  }
+  return res.status(404).json({ error: 'Route not found', code: 'NOT_FOUND' });
+});
+
 // Keep parser errors machine-readable; never expose stack traces or request bodies.
 const handleRequestError: ErrorRequestHandler = (error, _req, res, next) => {
   if (res.headersSent) return next(error);

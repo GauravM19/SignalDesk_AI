@@ -42,6 +42,41 @@ async function post(path, payload) {
   });
 }
 
+test('unknown routes return JSON without reflecting paths or query secrets', async () => {
+  const response = await fetch(`${baseUrl}/missing/private-token?key=secret`);
+  assert.equal(response.status, 404);
+  assert.match(response.headers.get('content-type'), /application\/json/);
+  assert.deepEqual(await response.json(), { error: 'Route not found', code: 'NOT_FOUND' });
+});
+
+for (const [path, method, allowed] of [
+  ['/health', 'POST', 'GET, HEAD'],
+  ['/ai/chat', 'GET', 'POST'],
+  ['/ai/summarise', 'DELETE', 'POST'],
+  ['/AI/CHAT/', 'PUT', 'POST']
+]) {
+  test(`${method} ${path} returns 405 and the supported methods`, async () => {
+    const response = await fetch(`${baseUrl}${path}`, { method });
+    assert.equal(response.status, 405);
+    assert.equal(response.headers.get('allow'), allowed);
+    assert.deepEqual(await response.json(), {
+      error: 'Method not allowed', code: 'METHOD_NOT_ALLOWED'
+    });
+  });
+}
+
+test('health HEAD and CORS preflight remain supported', async () => {
+  const head = await fetch(`${baseUrl}/health`, { method: 'HEAD' });
+  assert.equal(head.status, 200);
+  assert.equal(await head.text(), '');
+  const preflight = await fetch(`${baseUrl}/ai/chat`, {
+    method: 'OPTIONS',
+    headers: { origin: 'http://localhost:3000', 'access-control-request-method': 'POST' }
+  });
+  assert.equal(preflight.status, 204);
+  assert.ok(preflight.headers.get('access-control-allow-methods').includes('POST'));
+});
+
 // Isolate provider mocks in a child process so they cannot affect other tests.
 async function withProviderMock(mockBody, run) {
   const script = `
