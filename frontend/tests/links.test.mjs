@@ -1,0 +1,52 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
+import next from 'next';
+import { auditLinks } from './link-audit.mjs';
+
+test('audit detects missing routes, anchors and empty links', async () => {
+  const result = await auditLinks(['/'], async path => path === '/' ? {
+    status: 200,
+    html: '<a href="/missing">Missing</a><a href="#missing">Anchor</a><a href="#">Empty</a>'
+  } : { status: 404, html: '' });
+  assert.equal(result.errors.length, 3);
+  assert.ok(result.errors.some(error => error.includes('returned 404')));
+  assert.ok(result.errors.some(error => error.includes('missing anchor')));
+  assert.ok(result.errors.some(error => error.includes('empty destination')));
+});
+
+test('audit accepts cross-page anchors and skips external/contact links', async () => {
+  const pages = {
+    '/': '<a href="/dashboard#chat">Chat</a><a href="mailto:owner@example.test">Email</a><a href="https://example.test">External</a>',
+    '/dashboard': '<section id="chat"></section><a href="/">Home</a>'
+  };
+  const result = await auditLinks(Object.keys(pages), async path => ({ status: 200, html: pages[path] }));
+  assert.deepEqual(result, { errors: [], checked: 2 });
+});
+
+test('all landing and dashboard links resolve in the production build', { timeout: 60000 }, async () => {
+  const app = next({ dev: false, dir: process.cwd() });
+  let server;
+  try {
+    await app.prepare();
+    server = createServer(app.getRequestHandler());
+    server.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const result = await auditLinks(['/', '/dashboard'], async path => {
+      const response = await fetch(`${base}${path}`, { signal: AbortSignal.timeout(10000) });
+      return { status: response.status, html: await response.text() };
+    });
+    assert.ok(result.checked > 0, 'The audit must actually inspect rendered links');
+    assert.deepEqual(result.errors, []);
+    console.log(`Checked ${result.checked} internal links across both pages.`);
+  } finally {
+    if (server) {
+      const closed = new Promise(resolve => server.close(resolve));
+      server.closeAllConnections();
+      await closed;
+    }
+    await app.close();
+  }
+});
