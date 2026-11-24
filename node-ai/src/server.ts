@@ -3,6 +3,7 @@ import cors from 'cors';
 import { z } from 'zod';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { installShutdown } from './shutdown.js';
 
 export const app = express();
 app.use(cors());
@@ -130,6 +131,7 @@ const handleRequestError: ErrorRequestHandler = (error, _req, res, next) => {
 app.use(handleRequestError);
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => console.log(`SignalDesk AI listening on ${port}`));
+  const server = app.listen(port, () => console.log(`SignalDesk AI listening on ${port}`));
+  installShutdown(server);
 }
 
