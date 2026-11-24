@@ -1,0 +1,28 @@
+/* Shrink layout children instead of hiding content outside the viewport. */
+.nav > *, .preview-grid > *, .feature-grid > *, .demo-section > *,
+.workspace-nav > *, .workspace-actions > *, .workspace-body > *,
+.dash-heading > *, .stats > *, .dash-grid > *, .panel-head > *,
+.source-row > *, .briefing-row > *, .chat-banner > * {
+  min-width: 0;
+}
+.preview-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.feature-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.demo-section { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.add-source input { width: 100%; min-width: 0; }
+.workspace-chat { flex: 1 1 460px; }
+.workspace-chat input { width: 100%; }
+.hero-actions, .panel-head, footer { flex-wrap: wrap; }
+.answer, .research-result, .source-row, .briefing-row { overflow-wrap: anywhere; }
+img, video, svg { max-width: 100%; }
+@media (max-width: 900px) {
+  .workspace-chat { flex-basis: auto; }
+}
+@media (max-width: 800px) {
+  .stats { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .preview-grid, .feature-grid, .demo-section { grid-template-columns: minmax(0, 1fr); }
+  .workspace-nav, .workspace-user { flex-wrap: wrap; }
+  .workspace-nav { gap: 12px; }
+}
