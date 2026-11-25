@@ -35,6 +35,17 @@ test('all landing and dashboard links resolve in the production build', { timeou
     await once(server, 'listening');
     const base = `http://127.0.0.1:${server.address().port}`;
     const home = await fetch(base).then(response => response.text());
+    const dashboard = await fetch(`${base}/dashboard`).then(response => response.text());
+    for (const html of [home, dashboard]) {
+      assert.match(html, /<link[^>]*rel="icon"[^>]*href="\/icon\.svg(?:\?[^\"]*)?"/, 'Each page advertises the app favicon');
+    }
+    const icon = await fetch(`${base}/icon.svg`);
+    assert.equal(icon.status, 200);
+    assert.match(icon.headers.get('content-type'), /image\/svg\+xml/);
+    const svg = await icon.text();
+    assert.match(svg, /viewBox="0 0 64 64"/);
+    assert.match(svg, /<title>SignalDesk<\/title>/);
+    assert.ok(Buffer.byteLength(svg) < 1024, 'Vector favicon remains below 1 KB');
     const menu = home.match(/<details\b[^>]*class="mobile-menu"[^>]*>([\s\S]*?)<\/details>/);
     assert.ok(menu, 'Landing page must render a native, keyboard-operable mobile disclosure');
     assert.doesNotMatch(menu[0].split('>')[0], /\bopen(?:\s|=|$)/, 'Menu starts closed');
