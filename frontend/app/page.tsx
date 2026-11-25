@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import SiteNavigation from './components/SiteNavigation';
 
 const features = [
   ['01', 'Connect your sources', 'RSS, YouTube, PDFs, Google Drive and Notion in one searchable workspace.'],
@@ -39,9 +40,9 @@ export default function Home() {
   };
 
   return <main>
-    <nav className="nav">
+    <nav className="nav" aria-label="Main navigation">
       <a className="brand" href="/"><span className="brand-mark">S</span> SignalDesk</a>
-      <div className="nav-links"><a href="#product">Product</a><a href="#workflow">How it works</a><a href="#demo">Live demo</a><a href="#tech">Technology</a></div>
+      <SiteNavigation />
       <a className="nav-button" href="/dashboard">Open workspace ↗</a>
     </nav>
 
@@ -69,3 +70,4 @@ export default function Home() {
     <footer><span>© 2026 SignalDesk AI</span><span id="tech">Next.js · Java · Node.js · LangChain · PostgreSQL</span></footer>
   </main>;
 }
+

@@ -7,8 +7,8 @@ be repackaged as fake fixes just to reach twenty commits.
 | Item | Status |
 | --- | --- |
 | Remove horizontal scrolling | Layout shrink/wrap rules implemented; production build passed. Browser viewport verification remains pending. |
-| Find broken links | Production-page audit checked 16 internal links across landing/dashboard; none broken. Audit now runs in CI. |
-| Mobile menu | Pending |
+| Find broken links | Production-page audit checked 21 internal links across landing/dashboard after adding mobile navigation; none broken. Audit runs in CI. |
+| Mobile menu | Implemented on landing page with native disclosure, keyboard support, Escape dismissal, close-on-selection and 44px+ targets. Production HTML contract checked; browser interaction QA pending. |
 | Favicon | Pending |
 | Page titles | Pending route-specific review |
 | Meta descriptions | Pending route-specific review |

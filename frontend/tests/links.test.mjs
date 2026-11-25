@@ -34,6 +34,13 @@ test('all landing and dashboard links resolve in the production build', { timeou
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');
     const base = `http://127.0.0.1:${server.address().port}`;
+    const home = await fetch(base).then(response => response.text());
+    const menu = home.match(/<details\b[^>]*class="mobile-menu"[^>]*>([\s\S]*?)<\/details>/);
+    assert.ok(menu, 'Landing page must render a native, keyboard-operable mobile disclosure');
+    assert.doesNotMatch(menu[0].split('>')[0], /\bopen(?:\s|=|$)/, 'Menu starts closed');
+    assert.match(menu[1], /<summary[^>]*aria-controls="mobile-navigation"[^>]*>Menu<\/summary>/);
+    assert.match(menu[1], /id="mobile-navigation"/);
+    assert.match(menu[1], /href="\/dashboard"/);
     const result = await auditLinks(['/', '/dashboard'], async path => {
       const response = await fetch(`${base}${path}`, { signal: AbortSignal.timeout(10000) });
       return { status: response.status, html: await response.text() };
