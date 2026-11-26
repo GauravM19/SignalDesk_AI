@@ -1,0 +1,20 @@
+.not-found {
+  min-height: 100svh;
+  padding: clamp(24px, 5vw, 72px);
+}
+.not-found-card {
+  max-width: 42rem;
+  margin: clamp(48px, 12vh, 140px) auto;
+}
+.not-found-card h1 {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.1;
+  margin: 20px 0;
+}
+.not-found-card > p:not(.section-kicker) {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.not-found-actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 28px; }
+.not-found-actions a { min-height: 44px; display: inline-flex; align-items: center; }
+.not-found a:focus-visible { outline: 3px solid #7c9560; outline-offset: 4px; }

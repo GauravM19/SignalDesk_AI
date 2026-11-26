@@ -13,7 +13,7 @@ be repackaged as fake fixes just to reach twenty commits.
 | Page titles | Landing and dashboard now have distinct server-rendered titles with shared brand templating; production HTML tests prevent missing or duplicate titles. |
 | Meta descriptions | Landing and dashboard now have distinct descriptions that describe current prototype functionality; exact production HTML checked. |
 | Footer links | Pending; current footer contains text, not broken links |
-| Custom 404 | Pending |
+| Custom 404 | Branded, responsive recovery page links to home/workspace. Production tests assert HTTP 404, noindex and all three recovery links on unknown top-level and nested URLs. Browser visual QA pending. |
 | Copyright year | Pending dynamic year |
 | Compressed images | Conditional; current pages have no content images to compress |
 | Broken buttons | Pending interaction audit |

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import './dashboard.css';
 import './responsive.css';
+import './not-found.css';
 
 export const metadata: Metadata = {
   title: {

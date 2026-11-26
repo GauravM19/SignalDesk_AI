@@ -60,6 +60,22 @@ test('all landing and dashboard links resolve in the production build', { timeou
     assert.match(menu[1], /<summary[^>]*aria-controls="mobile-navigation"[^>]*>Menu<\/summary>/);
     assert.match(menu[1], /id="mobile-navigation"/);
     assert.match(menu[1], /href="\/dashboard"/);
+    for (const path of ['/missing-page', '/dashboard/missing-page']) {
+      const response = await fetch(`${base}${path}`);
+      assert.equal(response.status, 404, 'Unknown URLs must retain the HTTP 404 status');
+      const html = await response.text();
+      assert.match(html, /id="not-found-title">This page is off the radar\./);
+      assert.match(html, /name="robots" content="noindex"/);
+      assert.match(html, /aria-label="Page recovery"/);
+      // Audit recovery destinations, while separately asserting the source is a 404.
+      const recovery = await auditLinks([path], async target => {
+        if (target === path) return { status: 200, html };
+        const destination = await fetch(`${base}${target}`);
+        return { status: destination.status, html: await destination.text() };
+      });
+      assert.equal(recovery.checked, 3, 'The brand and both recovery links are checked');
+      assert.deepEqual(recovery.errors, []);
+    }
     const result = await auditLinks(['/', '/dashboard'], async path => {
       const response = await fetch(`${base}${path}`, { signal: AbortSignal.timeout(10000) });
       return { status: response.status, html: await response.text() };
