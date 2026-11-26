@@ -10,8 +10,8 @@ be repackaged as fake fixes just to reach twenty commits.
 | Find broken links | Production-page audit checked 21 internal links across landing/dashboard after adding mobile navigation; none broken. Audit runs in CI. |
 | Mobile menu | Implemented on landing page with native disclosure, keyboard support, Escape dismissal, close-on-selection and 44px+ targets. Production HTML contract checked; browser interaction QA pending. |
 | Favicon | Added lightweight branded SVG using Next.js icon discovery. Production HTTP test verifies both pages advertise it and the asset is served as SVG below 1 KB. |
-| Page titles | Pending route-specific review |
-| Meta descriptions | Pending route-specific review |
+| Page titles | Landing and dashboard now have distinct server-rendered titles with shared brand templating; production HTML tests prevent missing or duplicate titles. |
+| Meta descriptions | Landing and dashboard now have distinct descriptions that describe current prototype functionality; exact production HTML checked. |
 | Footer links | Pending; current footer contains text, not broken links |
 | Custom 404 | Pending |
 | Copyright year | Pending dynamic year |

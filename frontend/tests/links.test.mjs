@@ -36,6 +36,14 @@ test('all landing and dashboard links resolve in the production build', { timeou
     const base = `http://127.0.0.1:${server.address().port}`;
     const home = await fetch(base).then(response => response.text());
     const dashboard = await fetch(`${base}/dashboard`).then(response => response.text());
+    const expectedMetadata = [
+      [home, 'SignalDesk AI | Research workspace', 'Explore SignalDesk AI, a research workspace prototype for organising sources, viewing briefings and asking AI questions.'],
+      [dashboard, 'Dashboard | SignalDesk AI', 'Manage your SignalDesk sources, view briefing records and ask questions from the workspace dashboard.']
+    ];
+    for (const [html, title, description] of expectedMetadata) {
+      assert.deepEqual([...html.matchAll(/<title>(.*?)<\/title>/g)].map(match => match[1]), [title], 'Each route has exactly one descriptive title');
+      assert.deepEqual([...html.matchAll(/<meta name="description" content="([^"]*)"\/?\s*>/g)].map(match => match[1]), [description], 'Each route has exactly one honest description');
+    }
     for (const html of [home, dashboard]) {
       assert.match(html, /<link[^>]*rel="icon"[^>]*href="\/icon\.svg(?:\?[^\"]*)?"/, 'Each page advertises the app favicon');
     }
