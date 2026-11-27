@@ -36,6 +36,16 @@ test('all landing and dashboard links resolve in the production build', { timeou
     const base = `http://127.0.0.1:${server.address().port}`;
     const home = await fetch(base).then(response => response.text());
     const dashboard = await fetch(`${base}/dashboard`).then(response => response.text());
+    for (const [html, formName, inputId] of [[home, 'Demo research question', 'demo-question'], [dashboard, 'Research question', 'research-question']]) {
+      assert.ok(html.includes(`aria-label="${formName}" aria-busy="false"`) || html.includes(`aria-label="${formName}"`));
+      assert.ok(html.includes(`for="${inputId}"`), 'Research input has an accessible label');
+      const input = html.match(new RegExp(`<input[^>]*id="${inputId}"[^>]*>`))?.[0];
+      assert.ok(input);
+      assert.match(input, /minLength="3"/);
+      assert.match(input, /maxLength="500"/);
+      assert.match(input, /required=""/);
+    }
+    assert.doesNotMatch(home, /Sources attached in workspace/);
     for (const html of [home, dashboard]) {
       const footer = html.match(/<footer\b[^>]*class="site-footer"[^>]*>([\s\S]*?)<\/footer>/)?.[1];
       assert.ok(footer, 'Both pages provide consistent footer navigation');

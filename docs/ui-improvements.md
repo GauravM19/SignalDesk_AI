@@ -16,9 +16,9 @@ be repackaged as fake fixes just to reach twenty commits.
 | Custom 404 | Branded, responsive recovery page links to home/workspace. Production tests assert HTTP 404, noindex and all three recovery links on unknown top-level and nested URLs. Browser visual QA pending. |
 | Copyright year | Footer derives the UTC year from the clock, refreshes after hydration and hourly for long-open sessions; production HTML checked against the current year. |
 | Compressed images | Conditional; current pages have no content images to compress |
-| Broken buttons | Pending interaction audit |
+| Broken buttons | Research submits now prevent duplicate in-flight requests, disable submit while pending and enforce question bounds; other interactions/browser QA pending. |
 | Success messages | Pending review and improvements |
-| Error messages | Pending frontend error-state review |
+| Error messages | Landing/dashboard research now separate accessible alerts from answers, check HTTP status and malformed responses, enforce a 20-second deadline, and explain network/rate-limit/timeout failures. Six request-boundary tests added; source/briefing states still need review. |
 | Placeholder text | Pending removal of misleading demo claims |
 | Unused navigation | Pending review |
 | Mobile overflow | Pending viewport regression checks beyond the initial layout fix |
