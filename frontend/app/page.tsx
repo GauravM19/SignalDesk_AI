@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import SiteNavigation from './components/SiteNavigation';
+import SiteFooter from './components/SiteFooter';
 
 const features = [
   ['01', 'Connect your sources', 'RSS, YouTube, PDFs, Google Drive and Notion in one searchable workspace.'],
@@ -67,7 +68,7 @@ export default function Home() {
     </section>
 
     <section id="product" className="cta"><div><div className="section-kicker">BUILT FOR FOCUSED TEAMS</div><h2>Your next briefing should already be waiting.</h2></div><a className="primary" href="/dashboard">Create your workspace <span>→</span></a></section>
-    <footer><span>© 2026 SignalDesk AI</span><span id="tech">Next.js · Java · Node.js · LangChain · PostgreSQL</span></footer>
+    <SiteFooter />
   </main>;
 }
 

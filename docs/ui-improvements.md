@@ -7,14 +7,14 @@ be repackaged as fake fixes just to reach twenty commits.
 | Item | Status |
 | --- | --- |
 | Remove horizontal scrolling | Layout shrink/wrap rules implemented; production build passed. Browser viewport verification remains pending. |
-| Find broken links | Production-page audit checked 21 internal links across landing/dashboard after adding mobile navigation; none broken. Audit runs in CI. |
+| Find broken links | Production-page audit checked 27 internal links across landing/dashboard after adding footer navigation; none broken. Audit runs in CI. |
 | Mobile menu | Implemented on landing page with native disclosure, keyboard support, Escape dismissal, close-on-selection and 44px+ targets. Production HTML contract checked; browser interaction QA pending. |
 | Favicon | Added lightweight branded SVG using Next.js icon discovery. Production HTTP test verifies both pages advertise it and the asset is served as SVG below 1 KB. |
 | Page titles | Landing and dashboard now have distinct server-rendered titles with shared brand templating; production HTML tests prevent missing or duplicate titles. |
 | Meta descriptions | Landing and dashboard now have distinct descriptions that describe current prototype functionality; exact production HTML checked. |
-| Footer links | Pending; current footer contains text, not broken links |
+| Footer links | Shared landing/dashboard footer provides Home, Workspace, How it works and the real source repository; internal destinations verified by production link audit. |
 | Custom 404 | Branded, responsive recovery page links to home/workspace. Production tests assert HTTP 404, noindex and all three recovery links on unknown top-level and nested URLs. Browser visual QA pending. |
-| Copyright year | Pending dynamic year |
+| Copyright year | Footer derives the UTC year from the clock, refreshes after hydration and hourly for long-open sessions; production HTML checked against the current year. |
 | Compressed images | Conditional; current pages have no content images to compress |
 | Broken buttons | Pending interaction audit |
 | Success messages | Pending review and improvements |

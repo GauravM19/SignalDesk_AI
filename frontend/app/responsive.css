@@ -15,6 +15,10 @@
 .hero-actions, .panel-head, footer { flex-wrap: wrap; }
 .answer, .research-result, .source-row, .briefing-row { overflow-wrap: anywhere; }
 img, video, svg { max-width: 100%; }
+.site-footer { gap: 16px 24px; font-size: 0.875rem; line-height: 1.6; }
+.site-footer nav { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.site-footer a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); }
+.site-footer a:focus-visible { outline: 3px solid #7c9560; outline-offset: 3px; }
 .mobile-menu { display: none; position: relative; }
 .mobile-menu summary {
   min-height: 44px; padding: 12px 16px; cursor: pointer;

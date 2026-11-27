@@ -36,6 +36,14 @@ test('all landing and dashboard links resolve in the production build', { timeou
     const base = `http://127.0.0.1:${server.address().port}`;
     const home = await fetch(base).then(response => response.text());
     const dashboard = await fetch(`${base}/dashboard`).then(response => response.text());
+    for (const html of [home, dashboard]) {
+      const footer = html.match(/<footer\b[^>]*class="site-footer"[^>]*>([\s\S]*?)<\/footer>/)?.[1];
+      assert.ok(footer, 'Both pages provide consistent footer navigation');
+      assert.match(footer, /aria-label="Footer navigation"/);
+      assert.match(footer, /href="\/#workflow"/);
+      assert.match(footer, /href="https:\/\/github.com\/GauravM19\/SignalDesk_AI"/);
+      assert.ok(footer.replaceAll(/<[^>]*>/g, '').includes(`© ${new Date().getUTCFullYear()} SignalDesk AI`));
+    }
     const expectedMetadata = [
       [home, 'SignalDesk AI | Research workspace', 'Explore SignalDesk AI, a research workspace prototype for organising sources, viewing briefings and asking AI questions.'],
       [dashboard, 'Dashboard | SignalDesk AI', 'Manage your SignalDesk sources, view briefing records and ask questions from the workspace dashboard.']
