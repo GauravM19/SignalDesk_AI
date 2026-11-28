@@ -36,6 +36,15 @@ test('all landing and dashboard links resolve in the production build', { timeou
     const base = `http://127.0.0.1:${server.address().port}`;
     const home = await fetch(base).then(response => response.text());
     const dashboard = await fetch(`${base}/dashboard`).then(response => response.text());
+    for (const html of [home, dashboard]) {
+      assert.doesNotMatch(html, /94%|>248<|Sources indexed|All systems operational/);
+      assert.match(html, /Not measured/);
+    }
+    assert.match(home, /Retrieval, citations and scheduled briefings come next/);
+    assert.match(home, /planned integrations, not connected services/);
+    assert.match(dashboard, /Loading workspace records/);
+    assert.match(dashboard, /Citation retrieval is not implemented/);
+    assert.doesNotMatch(dashboard, /class="chip">READY/);
     assert.match(dashboard, /aria-label="Save a source" aria-busy="false"/);
     for (const [id, length] of [['source-name', 255], ['source-url', 1000]]) {
       const input = dashboard.match(new RegExp(`<input[^>]*id="${id}"[^>]*>`))?.[0];

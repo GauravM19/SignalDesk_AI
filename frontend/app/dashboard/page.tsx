@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import SiteFooter from '../components/SiteFooter';
 import { requestResearch } from '../lib/research-request.mjs';
 import { saveSource } from '../lib/source-request.mjs';
+import { fetchWorkspace } from '../lib/workspace-request.mjs';
 
 type Source = { id: string; name: string; type: string; url: string; status: string };
 type Briefing = { title: string; topic: string; summary: string; deliveryTime: string; status: string };
@@ -21,7 +22,10 @@ export default function Dashboard() {
   const [sourceSuccess, setSourceSuccess] = useState('');
   const [sourceError, setSourceError] = useState('');
   const [message, setMessage] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(true);
+  const [workspaceLoaded, setWorkspaceLoaded] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState('');
+  const refreshInFlight = useRef(false);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [researchError, setResearchError] = useState('');
@@ -30,19 +34,21 @@ export default function Dashboard() {
   const researchInFlight = useRef(false);
 
   const loadWorkspace = useCallback(async () => {
+    if (refreshInFlight.current || sourceInFlight.current) return;
+    refreshInFlight.current = true;
     setRefreshing(true);
+    setWorkspaceError('');
+    setMessage('');
     try {
-      const [sourceResponse, briefingResponse] = await Promise.all([
-        fetch(`${API}/api/sources`),
-        fetch(`${API}/api/briefings/today`)
-      ]);
-      if (!sourceResponse.ok || !briefingResponse.ok) throw new Error('API unavailable');
-      setSources(await sourceResponse.json());
-      setBriefings(await briefingResponse.json());
-      setMessage('Workspace refreshed just now.');
+      const snapshot = await fetchWorkspace(API);
+      setSources(snapshot.sources);
+      setBriefings(snapshot.briefings);
+      setWorkspaceLoaded(true);
+      setMessage('Workspace records refreshed. Briefings are stored in memory, not scheduled for delivery.');
     } catch {
-      setMessage('Start the Java API to load workspace data.');
+      setWorkspaceError('Could not refresh workspace records. Check the Java API and select Refresh. Any previously loaded records are retained.');
     } finally {
+      refreshInFlight.current = false;
       setRefreshing(false);
     }
   }, []);
@@ -94,10 +100,12 @@ export default function Dashboard() {
     <div className="workspace-body">
       <aside aria-label="Workspace navigation"><div className="aside-label">WORKSPACE</div><a className="active" href="#overview">◈ Overview</a><a href="#sources">⌁ Sources</a><a href="#briefings">◷ Briefings</a><a href="#chat">✦ Research chat</a><div className="aside-footer"><span className="pulse" aria-hidden="true"></span> Demo environment</div></aside>
       <section id="overview" className="dashboard">
-        <div className="dash-heading"><div><div className="section-kicker">LIVE INTELLIGENCE WORKSPACE</div><h1>Good morning, Gaurav.</h1><p>Connect sources, run research and prepare your next briefing.</p></div><a className="primary" href="#chat">Ask SignalDesk <span aria-hidden="true">→</span></a></div>
-        <div className="stats"><div><span>Sources indexed</span><strong>{sources.length || 248}</strong><small>Across your workspace</small></div><div><span>Briefings ready</span><strong>{briefings.length || 3}</strong><small>Generated this week</small></div><div><span>Evidence coverage</span><strong>94%</strong><small>Last 30 answers</small></div></div>
+        <div className="dash-heading"><div><div className="section-kicker">RESEARCH WORKSPACE PROTOTYPE</div><h1>Welcome, Gaurav.</h1><p>Save source metadata, inspect briefing records and try the AI service.</p></div><a className="primary" href="#chat">Ask SignalDesk</a></div>
+        {refreshing && <p role="status">Loading workspace records…</p>}
+        {workspaceError && <p className="research-error" role="alert">{workspaceError}</p>}
+        <div className="stats"><div><span>Saved sources</span><strong>{workspaceLoaded ? sources.length : refreshing ? 'Loading…' : 'Not loaded'}</strong><small>{workspaceLoaded && workspaceError ? 'Last loaded records; refresh failed' : 'Metadata only; not indexed'}</small></div><div><span>Briefing records</span><strong>{workspaceLoaded ? briefings.length : refreshing ? 'Loading…' : 'Not loaded'}</strong><small>{workspaceLoaded && workspaceError ? 'Last loaded records; refresh failed' : 'In-memory API records'}</small></div><div><span>Evidence coverage</span><strong>Not measured</strong><small>Citation retrieval is not implemented</small></div></div>
         <div className="dash-grid">
-          <div id="briefings" className="panel"><div className="panel-head"><div><div className="panel-label">TODAY'S BRIEFING</div><h2>What matters today</h2></div><span className="chip">READY</span></div>{briefings.length ? briefings.map((b, i) => <div className="briefing-row" key={`${b.title}-${i}`}><span className="briefing-icon" aria-hidden="true">✦</span><div><strong>{b.title}</strong><p>{b.summary}</p><small>{b.topic} · Delivery {b.deliveryTime}</small></div></div>) : <div className="empty-state">Your next briefing will appear here after the Java API returns today’s items.</div>}</div>
+          <div id="briefings" className="panel"><div className="panel-head"><div><div className="panel-label">BRIEFING RECORDS</div><h2>Briefing preview</h2></div><span className="chip">IN MEMORY</span></div>{briefings.length ? briefings.map((b, i) => <div className="briefing-row" key={`${b.title}-${i}`}><span className="briefing-icon" aria-hidden="true">✦</span><div><strong>{b.title}</strong><p>{b.summary}</p><small>{b.topic} · Requested time {b.deliveryTime} · No automatic delivery</small></div></div>) : <div className="empty-state">{refreshing ? 'Loading briefing records…' : !workspaceLoaded ? 'Briefing records have not loaded. Use Refresh to try again.' : 'No briefing records returned by the API.'}</div>}</div>
           <div id="sources" className="panel"><div className="panel-head"><div><div className="panel-label">SOURCE LIBRARY</div><h2>Saved sources</h2></div><span className="count" aria-label={`${sources.length} saved sources`}>{sources.length}</span></div>{sources.slice(0, 5).map(s => <div className="source-row" key={s.id}><span className="source-dot" aria-hidden="true"></span><div><strong>{s.name}</strong><small>{s.type} · Metadata saved</small></div></div>)}<form className="add-source" onSubmit={addSource} aria-label="Save a source" aria-busy={savingSource}><label className="sr-only" htmlFor="source-name">Source name</label><input id="source-name" value={name} onChange={e => setName(e.target.value)} placeholder="Source name" required maxLength={255} disabled={savingSource} /><label className="sr-only" htmlFor="source-url">RSS feed URL</label><input id="source-url" type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.org/feed.xml" required maxLength={1000} disabled={savingSource} /><button type="submit" disabled={savingSource || refreshing}>{savingSource ? 'Saving…' : 'Save source'}</button></form>{savingSource && <p role="status">Saving source metadata…</p>}{sourceSuccess && <p className="form-message" role="status">{sourceSuccess}</p>}{sourceError && <p className="research-error" role="alert">{sourceError}</p>}{message && <p className="form-message" role="status" aria-live="polite">{message}</p>}</div>
         </div>
         <div id="chat" className="chat-banner"><div><span className="chat-spark" aria-hidden="true">✦</span><strong>Ask SignalDesk</strong><p>This prototype sends your question without source context; demo responses are not evidence-backed.</p></div><form className="workspace-chat" onSubmit={askResearch} aria-label="Research question" aria-busy={researching}><label className="sr-only" htmlFor="research-question">Research question</label><input id="research-question" value={question} onChange={e => setQuestion(e.target.value)} placeholder="Ask a research question..." required minLength={3} maxLength={500} disabled={researching} /><button type="submit" disabled={researching}>{researching ? 'Researching…' : 'Run research'}</button></form></div>

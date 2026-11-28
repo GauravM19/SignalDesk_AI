@@ -6,9 +6,9 @@ import SiteFooter from './components/SiteFooter';
 import { requestResearch } from './lib/research-request.mjs';
 
 const features = [
-  ['01', 'Connect your sources', 'RSS, YouTube, PDFs, Google Drive and Notion in one searchable workspace.'],
-  ['02', 'Ask with evidence', 'Get concise answers with the exact source context behind every claim.'],
-  ['03', 'Stay ahead automatically', 'Schedule a daily briefing and receive the signal before your first coffee.']
+  ['01', 'Save source metadata', 'Store RSS source names and URLs through the Java API. Feed fetching and indexing are not implemented yet.'],
+  ['02', 'Explore the AI boundary', 'Try the Node.js/LangChain service. Demo answers are labelled; configured models need source context to answer from evidence.'],
+  ['03', 'Preview briefing records', 'Inspect in-memory briefing records. Persistent briefings, scheduling and automatic delivery are planned.']
 ];
 
 const prompts = [
@@ -51,26 +51,26 @@ export default function Home() {
     </nav>
 
     <section className="hero">
-      <div className="eyebrow">PERSONAL INTELLIGENCE, GROUNDED IN YOUR SOURCES</div>
+      <div className="eyebrow">A RESEARCH WORKSPACE IN DEVELOPMENT</div>
       <h1>Turn scattered information into <em>clear decisions.</em></h1>
-      <p className="hero-copy">SignalDesk brings your news, documents and videos together, then gives you the context, citations and next actions you need to move faster.</p>
+      <p className="hero-copy">Start with saved RSS source metadata, briefing previews and a clearly labelled AI demo. Retrieval, citations and more source integrations are on the roadmap.</p>
       <div className="hero-actions"><a className="primary" href="#demo">Try the live demo <span>→</span></a><a className="secondary" href="/dashboard">Go to workspace →</a></div>
-      <div className="hero-note"><span className="pulse"></span> AI answers include supporting evidence</div>
+      <div className="hero-note">Prototype: source retrieval and citation verification are not implemented yet.</div>
     </section>
 
     <section className="dashboard-preview">
-      <div className="preview-top"><span>SignalDesk / Overview</span><span className="status">● All systems operational</span></div>
-      <div className="preview-grid"><div className="preview-main"><div className="small-label">TODAY'S SIGNAL</div><h3>Your morning briefing, already focused.</h3><p className="muted">A live workspace for what matters across your connected sources.</p><div className="story"><span className="story-tag">AI &amp; INDUSTRY</span><strong>Five stories condensed into the decisions worth discussing today.</strong><p>Open the workspace to connect sources, create briefings and ask questions.</p></div></div><div className="preview-side"><div className="metric"><span>Sources indexed</span><strong>248</strong><small>+18 this week</small></div><div className="metric"><span>Evidence coverage</span><strong>94%</strong><small>Across 32 answers</small></div></div></div>
+      <div className="preview-top"><span>SignalDesk / Product preview</span><span className="status">Prototype — not a live service monitor</span></div>
+      <div className="preview-grid"><div className="preview-main"><div className="small-label">CURRENT CAPABILITIES</div><h3>A foundation for focused research.</h3><p className="muted">Explore the working API boundaries without mistaking preview content for live intelligence.</p><div className="story"><span className="story-tag">DEVELOPMENT ROADMAP</span><strong>Retrieval, citations and scheduled briefings come next.</strong><p>Google Drive, Notion, PDFs and video ingestion are planned integrations, not connected services.</p></div></div><div className="preview-side"><div className="metric"><span>Source storage</span><strong>RSS metadata</strong><small>Names and URLs; no indexing yet</small></div><div className="metric"><span>Evidence coverage</span><strong>Not measured</strong><small>No published evaluation results</small></div></div></div>
     </section>
 
     <section id="workflow" className="feature-section"><div className="section-kicker">A calmer way to stay informed</div><h2>One workspace for the information that drives your work.</h2><div className="feature-grid">{features.map(([n, t, d]) => <div className="feature" key={n}><div className="feature-no">{n}</div><h3>{t}</h3><p>{d}</p></div>)}</div></section>
 
     <section id="demo" className="demo-section">
-      <div><div className="section-kicker">TRY GROUNDED RESEARCH</div><h2>Ask a question. See the evidence.</h2><p>Use the live Node.js/LangChain boundary or open the full workspace to connect sources and run research tasks.</p><div className="prompt-list">{prompts.map(prompt => <button key={prompt} className="prompt-chip" onClick={() => setQuestion(prompt)}>{prompt} <span>↗</span></button>)}</div></div>
+      <div><div className="section-kicker">TRY THE AI SERVICE</div><h2>Ask a question. Check its limits.</h2><p>This form sends no source context. Without a model key the service returns a demo; with a key it reports insufficient evidence. Source-grounded research is not available here yet.</p><div className="prompt-list">{prompts.map(prompt => <button key={prompt} className="prompt-chip" disabled={loading} onClick={() => setQuestion(prompt)}>{prompt}</button>)}</div></div>
       <div className="chat-card"><div className="chat-label">RESEARCH CHAT</div><form className="question-row" aria-label="Demo research question" aria-busy={loading} onSubmit={e => { e.preventDefault(); void ask(); }}><label className="sr-only" htmlFor="demo-question">Research question</label><input id="demo-question" value={question} onChange={e => setQuestion(e.target.value)} placeholder="What changed in AI this week?" required minLength={3} maxLength={500} disabled={loading} /><button type="submit" disabled={loading}>{loading ? 'Researching…' : 'Ask'}</button></form>{loading && <p role="status">Waiting for the AI service…</p>}{error && <p className="research-error" role="alert">{error}</p>}{answer && <div className="answer" role="status"><strong>{answerLabel}</strong><p>{answer}</p></div>}</div>
     </section>
 
-    <section id="product" className="cta"><div><div className="section-kicker">BUILT FOR FOCUSED TEAMS</div><h2>Your next briefing should already be waiting.</h2></div><a className="primary" href="/dashboard">Create your workspace <span>→</span></a></section>
+    <section id="product" className="cta"><div><div className="section-kicker">EXPLORE THE PROTOTYPE</div><h2>See what works today and what comes next.</h2></div><a className="primary" href="/dashboard">Open workspace</a></section>
     <SiteFooter />
   </main>;
 }

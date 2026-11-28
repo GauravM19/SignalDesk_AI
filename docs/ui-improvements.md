@@ -19,7 +19,7 @@ be repackaged as fake fixes just to reach twenty commits.
 | Broken buttons | Research submits now prevent duplicate in-flight requests, disable submit while pending and enforce question bounds; other interactions/browser QA pending. |
 | Success messages | Source save now confirms the actual returned name, clears fields only after a validated response and explicitly states metadata-only storage. Pending/duplicate-submit guard and separate alert on failure; request regressions covered. |
 | Error messages | Landing/dashboard research now separate accessible alerts from answers, check HTTP status and malformed responses, enforce a 20-second deadline, and explain network/rate-limit/timeout failures. Six request-boundary tests added; source/briefing states still need review. |
-| Placeholder text | Pending removal of misleading demo claims |
+| Placeholder text | Removed invented source/evidence metrics, blanket health claims and unsupported integration/delivery promises. Landing distinguishes implemented metadata/API features from roadmap; dashboard uses actual list counts (including zero), explicit loading/error/stale states and unmeasured evidence. Briefings labelled in-memory, not delivered. |
 | Unused navigation | Pending review |
 | Mobile overflow | Pending viewport regression checks beyond the initial layout fix |
 | Clickable logo | Already links home on both pages; verify rather than duplicate |
