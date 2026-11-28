@@ -17,7 +17,7 @@ be repackaged as fake fixes just to reach twenty commits.
 | Copyright year | Footer derives the UTC year from the clock, refreshes after hydration and hourly for long-open sessions; production HTML checked against the current year. |
 | Compressed images | Conditional; current pages have no content images to compress |
 | Broken buttons | Research submits now prevent duplicate in-flight requests, disable submit while pending and enforce question bounds; other interactions/browser QA pending. |
-| Success messages | Pending review and improvements |
+| Success messages | Source save now confirms the actual returned name, clears fields only after a validated response and explicitly states metadata-only storage. Pending/duplicate-submit guard and separate alert on failure; request regressions covered. |
 | Error messages | Landing/dashboard research now separate accessible alerts from answers, check HTTP status and malformed responses, enforce a 20-second deadline, and explain network/rate-limit/timeout failures. Six request-boundary tests added; source/briefing states still need review. |
 | Placeholder text | Pending removal of misleading demo claims |
 | Unused navigation | Pending review |

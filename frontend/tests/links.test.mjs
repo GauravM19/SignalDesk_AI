@@ -36,6 +36,15 @@ test('all landing and dashboard links resolve in the production build', { timeou
     const base = `http://127.0.0.1:${server.address().port}`;
     const home = await fetch(base).then(response => response.text());
     const dashboard = await fetch(`${base}/dashboard`).then(response => response.text());
+    assert.match(dashboard, /aria-label="Save a source" aria-busy="false"/);
+    for (const [id, length] of [['source-name', 255], ['source-url', 1000]]) {
+      const input = dashboard.match(new RegExp(`<input[^>]*id="${id}"[^>]*>`))?.[0];
+      assert.ok(input);
+      assert.ok(input.includes(`maxLength="${length}"`));
+      assert.match(input, /required=""/);
+      assert.match(input, /value=""/);
+    }
+    assert.doesNotMatch(dashboard, /The Verge AI feed/);
     for (const [html, formName, inputId] of [[home, 'Demo research question', 'demo-question'], [dashboard, 'Research question', 'research-question']]) {
       assert.ok(html.includes(`aria-label="${formName}" aria-busy="false"`) || html.includes(`aria-label="${formName}"`));
       assert.ok(html.includes(`for="${inputId}"`), 'Research input has an accessible label');
